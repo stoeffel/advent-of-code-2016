@@ -4,6 +4,7 @@ module Day1 where
 import Data.Either
 import Data.List
 import Data.List.Split
+import Safe
 
 
 data Direction
@@ -27,18 +28,17 @@ instance Eq CardinalDirection where
   _ == _ = False
 
 instance Ord CardinalDirection where
+  compare (E _) (N _) = GT
+  compare (S _) (N _) = GT
+  compare (W _) (N _) = GT
+  compare (S _) (E _) = GT
+  compare (W _) (E _) = GT
+  compare (W _) (S _) = GT
   compare x y =
     if x == y then
       EQ
     else
-      case (x, y) of
-        (E _, N _) -> GT
-        (S _, N _) -> GT
-        (W _, N _) -> GT
-        (S _, E _) -> GT
-        (W _, E _) -> GT
-        (W _, S _) -> GT
-        _ -> LT
+      LT
 
 type Blocks = Int
 type Location = (Int, Int)
@@ -58,15 +58,10 @@ directionFromString _ = Left "Unknown direction!"
 
 parseInt :: String -> String -> Either String Int
 parseInt e n =
-  case readMaybe n :: Maybe Int of
+  case readMay n :: Maybe Int of
     Just n -> Right n
     Nothing -> Left e
 
-readMaybe :: Read a => String -> Maybe a
-readMaybe s =
-  case reads s of
-    [(val, "")] -> Just val
-    _ -> Nothing
 
 -- | parse directions
 -- >>> parse "L3, R2"
@@ -74,10 +69,7 @@ readMaybe s =
 -- >>> parse "L3, X2"
 -- Left "Unknown direction!"
 parse :: String -> Either String [Direction]
-parse =
-  sequence
-  . map directionFromString
-  . splitOn ", "
+parse = sequence . map directionFromString . splitOn ", "
 
 
 -- | turns directions into cardinal directions
@@ -143,13 +135,14 @@ distance str =
   . groupCardinalDirections
   . toCardinalDirections
   <$> parse str
-    where
-  blocks :: Blocks -> [CardinalDirection] -> Blocks
-  blocks n [] = n
-  blocks n (N x:xs) = blocks (n + x) xs
-  blocks n (E x:xs) = blocks (n + x) xs
-  blocks n (S x:xs) = blocks (n - x) xs
-  blocks n (W x:xs) = blocks (n - x) xs
+
+
+blocks :: Blocks -> [CardinalDirection] -> Blocks
+blocks n [] = n
+blocks n (N x:xs) = blocks (n + x) xs
+blocks n (E x:xs) = blocks (n + x) xs
+blocks n (S x:xs) = blocks (n - x) xs
+blocks n (W x:xs) = blocks (n - x) xs
 
 
 -- |
@@ -197,4 +190,3 @@ findFirstDup ys (x:xs) =
 distanceToMaybeLocation :: Maybe Location -> Either String Blocks
 distanceToMaybeLocation Nothing = Left "No duplicate location!"
 distanceToMaybeLocation (Just (x, y)) = Right $ abs (x + y)
-

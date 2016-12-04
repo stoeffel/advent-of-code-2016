@@ -1,7 +1,9 @@
 module Day3 where
 
 
+import Safe
 import Data.List (transpose)
+import Data.List.Split (chunksOf)
 
 
 {- | >>> :{
@@ -11,14 +13,12 @@ import Data.List (transpose)
   , "  10  3  7"
   , "  2  3  3" ]
 :}
-1
+Just 1
 -}
-possibleTriangles :: String -> Int
-possibleTriangles =
-  length
-  . filter isValidTriangle
-  . map (map read . words)
-  . lines
+possibleTriangles :: String -> Maybe Int
+possibleTriangles str =
+  countValidTriangle
+  <$> toLinesOfNumbers str
 
 
 {- | >>> :{
@@ -28,30 +28,25 @@ possibleTriangles =
   , "  2  3  10"
   , "  3  7  5" ]
 :}
-1
+Just 1
 -}
-possibleTrianglesVert :: String -> Int
-possibleTrianglesVert =
-  length
-  . filter isValidTriangle
-  . splitEvery 3
-  . concat
-  . transpose
-  . map (map read . words)
-  . lines
+possibleTrianglesVert :: String -> Maybe Int
+possibleTrianglesVert str =
+  countValidTriangle
+  . chunksOf 3 . concat . transpose
+  <$> toLinesOfNumbers str
 
 
-splitEvery :: Int -> [a] -> [[a]]
-splitEvery _ [] = []
-splitEvery n xs = as : splitEvery n bs
-  where (as,bs) = splitAt n xs
+toLinesOfNumbers :: String -> Maybe [[Int]]
+toLinesOfNumbers = sequence . map (sequence . map readMay . words) . lines
+
+
+countValidTriangle :: [[Int]] -> Int
+countValidTriangle = length . filter isValidTriangle
 
 
 isValidTriangle :: [Int] -> Bool
-isValidTriangle (a:b:c:[]) =
-  ( a + b > c )
-  && ( a + c > b )
-  && ( b + c > a )
+isValidTriangle (a:b:c:[]) = ( a + b > c ) && ( a + c > b ) && ( b + c > a )
 isValidTriangle _ = False
 
 
