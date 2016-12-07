@@ -28,6 +28,10 @@ executable simple-exe
                      , split
                      , safe
                      , parsec
+                     , pureMD5
+                     , bytestring
+                     , mtl
+                     , parallel
   default-language:    Haskell2010
 
 test-suite simple-test
