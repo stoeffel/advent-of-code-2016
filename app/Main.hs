@@ -1,6 +1,7 @@
 module Main where
 
+import Day1
 import Lib
 
 main :: IO ()
-main = someFunc
+main = print "hello"
